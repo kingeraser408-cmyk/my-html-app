@@ -1,4 +1,4 @@
-name: Build APK
+name: HTML to APK Final
 on: [push]
 
 jobs:
@@ -8,22 +8,30 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          node-version: 20
 
-      - name: Install Bubblewrap
+      - name: Install Build Tool
+        run: npm install -g @bubblewrap/cli
+
+      - name: Generate APK (Silently)
         run: |
-          npm install -g @bubblewrap/cli
-          # အောက်ပါ command သည် APK ထွက်စေရန် အဓိကလုပ်ဆောင်ပါလိမ့်မည်
-          bubblewrap build || echo "Build process finished"
+          # Manifest မရှိရင် အလိုအလျောက် အခြေခံတစ်ခု ဆောက်ပေးပါမယ်
+          echo '{"name":"My App","short_name":"MyApp","start_url":"/index.html","display":"standalone","background_color":"#fff","theme_color":"#fff","icons":[{"src":"icon.png","sizes":"512x512","type":"image/png"}]}' > manifest.json
+          
+          # Bubblewrap ကို မေးခွန်းမမေးဘဲ build ခိုင်းခြင်း
+          bubblewrap init --manifest manifest.json --no-prompt || true
+          bubblewrap build --skipConfig --no-prompt || echo "Skipping build error for now"
+          
+          # APK ဖိုင် တကယ်ထွက်မထွက် စစ်ဆေးပြီး အပြင်ကို ထုတ်ပေးခြင်း
+          find . -name "*.apk" -exec cp {} ./app-release.apk \;
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: my-app-apk
-          path: "**/*.apk" # ဖိုင်လမ်းကြောင်းကို ရှာဖွေခိုင်းလိုက်တာပါ
+          name: HTML-App-APK
+          path: app-release.apk
           if-no-files-found: error
           
