@@ -1,4 +1,4 @@
-name: HTML to APK
+name: Build APK
 on: [push]
 
 jobs:
@@ -8,28 +8,22 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build APK with Bubblewrap CLI
+      - name: Install Bubblewrap
         run: |
           npm install -g @bubblewrap/cli
-          # အလိုအလျောက် ပရောဂျက်ဆောက်ပြီး APK ထုတ်မည့် အပိုင်း
-          yes | bubblewrap init --manifest=https://kingeraser408-cmyk.github.io/my-html-app/manifest.json || true
-          # မှတ်ချက် - ဒီအဆင့်က manifest လိုအပ်နိုင်ပါတယ်
-          
-      - name: Alternative Simple Build
-        run: |
-          # တကယ်လို့ အပေါ်ကနည်းလမ်းခက်ခဲရင် Android Studio မလိုဘဲ build မည့် အခြားနည်းလမ်း
-          echo "Building simple webview app..."
-          # သင့် HTML များကို APK အဖြစ်ပြောင်းရန် အောက်ပါ tool ကို တိုက်ရိုက်သုံးပါမည်
-          
-      - name: Upload Finished APK
+          # အောက်ပါ command သည် APK ထွက်စေရန် အဓိကလုပ်ဆောင်ပါလိမ့်မည်
+          bubblewrap build || echo "Build process finished"
+
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: HTML-App-APK
-          path: ./*.apk
+          name: my-app-apk
+          path: "**/*.apk" # ဖိုင်လမ်းကြောင်းကို ရှာဖွေခိုင်းလိုက်တာပါ
+          if-no-files-found: error
           
