@@ -32,7 +32,7 @@ jobs:
           sed -i 's/android:usesCleartextTraffic="false"/android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
           
           # Local file access config ထည့်ခြင်း
-          echo '{"appId": "com.kingeraser.myapp", "appName": "MyApp", "webDir": "www", "server": {"allowNavigation": ["*"], "cleartext": true}}' > capacitor.config.json
+          echo '{"appId": "com.kingeraser.myapp", "appName": "Ocr1", "webDir": "www", "server": {"allowNavigation": ["*"], "cleartext": true}}' > capacitor.config.json
 
           export JAVA_HOME=$JAVA_HOME_21_X64
           npx cap sync android
