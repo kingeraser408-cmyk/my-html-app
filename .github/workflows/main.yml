@@ -1,4 +1,4 @@
-name: HTML to APK (Final Fix)
+name: HTML to APK (Success Version)
 on: [push]
 
 jobs:
@@ -14,22 +14,27 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Install Ionic and Capacitor
+      - name: Prepare Folder and Install Tools
         run: |
+          # www folder ဆောက်ပြီး HTML project ဖိုင်များကို ရွှေ့ခြင်း
+          mkdir www
+          cp -r ./* www/ || true
+          # မလိုအပ်သော workflows folder ကို ပြန်ဖျက်ခြင်း
+          rm -rf www/.github
+          
           npm install -g @ionic/cli
           npm install @capacitor/core @capacitor/cli @capacitor/android
-          # Project ကို အခြေခံမှ စဆောက်ခြင်း
-          npx cap init MyApp com.kingeraser.myapp --web-dir .
-          npx cap add android
 
-      - name: Build Android
+      - name: Initialize and Build Android
         run: |
+          # web-dir ကို www လို့ သတ်မှတ်လိုက်ခြင်းဖြင့် error ကို ဖြေရှင်းသည်
+          npx cap init MyApp com.kingeraser.myapp --web-dir www
+          npx cap add android
           npx cap sync android
           cd android && ./gradlew assembleDebug
 
-      - name: Find and Export APK
+      - name: Export APK
         run: |
-          # ထွက်လာတဲ့ APK ကို အပြင်ကို ထုတ်ပေးခြင်း
           cp android/app/build/outputs/apk/debug/app-debug.apk ./my-final-app.apk
 
       - name: Upload APK
