@@ -44,13 +44,15 @@
     const mainBtn = document.getElementById('mainBtn');
     let worker = null;
 
-    async function initWorker() {
+        async function initWorker() {
         try {
-            // လုံးဝ Offline ဖြစ်အောင် assets ထဲက ဖိုင်တွေကိုပဲ ခေါ်ခိုင်းတာပါ
+            status.innerText = "Engine စတင်နေပါပြီ...";
             worker = await Tesseract.createWorker({
-                workerPath: 'worker.min.js',
-                corePath: 'tesseract-core.wasm.js',
-                langPath: '.', // .gz ဖိုင်တွေရှိတဲ့ နေရာ (assets folder)
+                // ရှေ့မှာ ./ ထည့်ပေးခြင်းဖြင့် local directory ကို ညွှန်းပါသည်
+                workerPath: './worker.min.js',
+                corePath: './tesseract-core.wasm.js',
+                langPath: './', 
+                gzip: true, // .gz ဖိုင်တွေကို load လုပ်ရ ပိုလွယ်စေရန်
                 logger: m => {
                     if (m.status === 'recognizing text') {
                         status.innerText = `စာသားဖတ်နေသည်: ${(m.progress * 100).toFixed(0)}%`;
@@ -65,10 +67,9 @@
             
             mainBtn.disabled = false;
             mainBtn.innerText = "ပုံရွေးရန် (Select Image)";
-            status.innerText = "Offline အဆင်သင့်ဖြစ်ပါပြီ";
+            status.innerText = "အဆင်သင့်ဖြစ်ပါပြီ";
         } catch (e) {
             status.innerText = "Error: " + e.message;
-            console.error(e);
         }
     }
 
