@@ -1,4 +1,4 @@
-name: Build Android APK
+name: HTML to APK
 on: [push]
 
 jobs:
@@ -8,26 +8,23 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
         with:
-          node-version: 20
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Install Ionic and Capacitor
+      - name: Create Android Project Structure
         run: |
-          npm install -g @ionic/cli
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init MyApp com.example.myapp --web-dir .
-          npx cap add android
+          mkdir -p android/app/src/main/assets/www
+          cp -r ./* android/app/src/main/assets/www/ || true
+          # Remove .github folder from assets to save space
+          rm -rf android/app/src/main/assets/www/.github
 
-      - name: Build Android Project
-        run: |
-          npx cap sync
-          cd android && ./gradlew assembleDebug
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Build with Bubblewrap (Web-to-APK)
+        uses: jasonit/web-to-app-action@main
         with:
-          name: my-app-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          app-name: "MyHtmlApp"
+          source-directory: "."
+          # အရင်က error တက်ခဲ့တဲ့ tool မဟုတ်ဘဲ version အသစ်ကို ခေါ်သုံးထားပါတယ်
           
