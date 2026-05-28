@@ -6,16 +6,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4 # Version update လုပ်ထားသည်
+        uses: actions/checkout@v4
 
-      - name: Web to APK Action
-        uses: jasonit/web-to-app-action@main # ပိုကောင်းတဲ့ action ပြောင်းထားသည်
+      - name: Build APK
+        uses: elvis-perez/web-to-app-action@v1.1
         with:
-          app-name: "MyAwesomeApp"
-          source-directory: "." # index.html ရှိတဲ့နေရာ
+          name: "MyAwesomeApp"
+          url: "file:///android_asset/www/index.html"
+          folder: "."
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4 # v2 အစား v4 ပြောင်းထားသည်
+        uses: actions/upload-artifact@v4
         with:
           name: my-app-apk
           path: ./*.apk
