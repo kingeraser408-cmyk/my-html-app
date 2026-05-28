@@ -1,158 +1,102 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="my">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offline OCR (KR + MY)</title>
+    <title>100% Offline OCR - KR & MM</title>
+    <script src="tesseract.min.js"></script>
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f2f5; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        #preview-area { width: 100%; min-height: 200px; border: 2px dashed #ccc; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; background: #fafafa; border-radius: 10px; }
-        video, img { max-width: 100%; border-radius: 5px; }
-        canvas { display: none; }
-        .controls { margin-bottom: 15px; padding: 10px; background: #e8f0fe; border-radius: 8px; }
-        select { padding: 10px; width: 100%; margin-bottom: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 16px; }
-        button, label { background: #1a73e8; color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 5px; display: inline-block; transition: 0.3s; }
-        button:active { transform: scale(0.95); }
-        .btn-scan { background: #34a853; width: 100%; font-size: 18px; }
-        .btn-copy { background: #5f6368; width: 100%; margin-top: 10px; display: none; }
-        #result { margin-top: 20px; padding: 15px; background: #f9f9f9; border: 1px solid #ddd; text-align: left; white-space: pre-wrap; min-height: 150px; font-size: 18px; border-radius: 8px; color: #333; line-height: 1.5; }
-        #status { margin: 10px 0; font-weight: bold; color: #1a73e8; }
+        :root { --keep-yellow: #fbbc04; --bg: #ffffff; }
+        body { font-family: sans-serif; background: #e8eaed; margin: 0; padding: 20px; display: flex; justify-content: center; }
+        .keep-card { width: 100%; max-width: 500px; background: var(--bg); border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.2); overflow: hidden; }
+        .header { padding: 15px; border-bottom: 1px solid #ddd; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        .content { padding: 20px; }
+        #preview { width: 100%; border-radius: 4px; display: none; margin-bottom: 15px; border: 1px dashed #ccc; }
+        .upload-btn { background: var(--keep-yellow); border: none; padding: 15px; width: 100%; border-radius: 4px; cursor: pointer; font-weight: bold; margin-bottom: 10px; }
+        .upload-btn:disabled { background: #ccc; }
+        .status { font-size: 13px; color: #5f6368; margin: 10px 0; }
+        .result-box { width: 100%; min-height: 200px; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #fff; font-size: 15px; box-sizing: border-box; outline: none; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Offline Multi-Lang Scanner</h2>
-    
-    <div class="controls">
-        <label>ဘာသာစကားရွေးချယ်ပါ:</label>
-        <select id="lang-select">
-            <option value="kor+mya">Korean + Myanmar (ကိုရီးယား + မြန်မာ)</option>
-            <option value="kor">Korean Only</option>
-            <option value="mya">Myanmar Only</option>
-            <option value="eng">English Only</option>
-        </select>
+<div class="keep-card">
+    <div class="header">
+        <img src="https://www.gstatic.com/images/branding/product/1x/keep_48dp.png" width="24">
+        <span>Offline KR-MM OCR</span>
     </div>
 
-    <div id="preview-area">
-        <video id="video" autoplay playsinline></video>
-        <img id="image-preview" style="display:none;">
+    <div class="content">
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+        <button id="mainBtn" class="upload-btn" onclick="document.getElementById('fileInput').click()" disabled>Loading Offline Engine...</button>
+        
+        <img id="preview">
+        <div id="status" class="status">Initializing...</div>
+        <textarea id="resultText" class="result-box" placeholder="စာသားများ ဤနေရာတွင် ပေါ်လာမည်..."></textarea>
+        
+        <button onclick="copyToClipboard()" style="margin-top:10px; padding: 12px; width: 100%; cursor:pointer; font-weight:bold;">Copy Text</button>
     </div>
-    
-    <canvas id="canvas"></canvas>
-
-    <div class="btn-group">
-        <label for="file-input">GALLERY</label>
-        <input type="file" id="file-input" accept="image/*" style="display:none;">
-        <button onclick="startCamera()">CAMERA</button>
-        <button class="btn-scan" onclick="processImage()">START SCAN</button>
-    </div>
-
-    <div id="status">အဆင်သင့်ဖြစ်ပါပြီ</div>
-    <div id="result">Scan ဖတ်ထားသော စာသားများကို ဤနေရာတွင် ပြပေးမည်...</div>
-    <button class="btn-copy" id="copy-btn" onclick="copyToClipboard()">စာသားများကို Copy ကူးမည်</button>
 </div>
 
-<script src="tesseract.min.js"></script>
-
 <script>
-    const video = document.getElementById('video');
-    const imagePreview = document.getElementById('image-preview');
-    const canvas = document.getElementById('canvas');
-    const resultDiv = document.getElementById('result');
-    const statusDiv = document.getElementById('status');
-    const fileInput = document.getElementById('file-input');
-    const langSelect = document.getElementById('lang-select');
-    const copyBtn = document.getElementById('copy-btn');
+    const status = document.getElementById('status');
+    const resultText = document.getElementById('resultText');
+    const mainBtn = document.getElementById('mainBtn');
+    let worker = null;
 
-    let isCameraMode = true;
-
-    async function startCamera() {
-        isCameraMode = true;
-        imagePreview.style.display = 'none';
-        video.style.display = 'block';
+        async function initWorker() {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-            video.srcObject = stream;
-        } catch (err) { statusDiv.innerText = "ကင်မရာဖွင့်၍မရပါ!"; }
-    }
-
-    fileInput.onchange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            isCameraMode = false;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                imagePreview.src = ev.target.result;
-                imagePreview.style.display = 'block';
-                video.style.display = 'none';
-                if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    async function processImage() {
-        let imageSource;
-        if (isCameraMode) {
-            if (video.videoWidth === 0) return alert("ကင်မရာ အဆင်သင့်မဖြစ်သေးပါ။");
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            // Image quality မြှင့်တင်ရန် filters များသုံးနိုင်သည်
-            ctx.drawImage(video, 0, 0);
-            imageSource = canvas.toDataURL('image/png');
-        } else {
-            imageSource = imagePreview.src;
-        }
-
-        if (!imageSource) return;
-
-        const lang = langSelect.value;
-        statusDiv.innerHTML = "Processing Offline... (ခဏစောင့်ပါ)";
-        resultDiv.innerText = "စာသားများကို ဖတ်နေပါသည်...";
-        copyBtn.style.display = "none";
-        
-        try {
-            // စာဖတ်နှုန်းမြန်စေရန် recognize ကို တိုက်ရိုက်သုံးသည်
-            const { data: { text } } = await Tesseract.recognize(imageSource, lang, {
+            status.innerText = "Engine စတင်နေပါပြီ...";
+            worker = await Tesseract.createWorker({
+                // ရှေ့မှာ ./ ထည့်ပေးခြင်းဖြင့် local directory ကို ညွှန်းပါသည်
                 workerPath: './worker.min.js',
                 corePath: './tesseract-core.wasm.js',
-                langPath: './lang-data',
-                gzip: true,
-                // မြန်မာစာလုံးများ ပိုမိုမှန်ကန်စေရန် parameter ထည့်သွင်းခြင်း
-                tessedit_char_whitelist: '', 
+                langPath: './', 
+                gzip: false, // .gz ဖိုင်တွေကို load လုပ်ရ ပိုလွယ်စေရန်
                 logger: m => {
-                    if(m.status === 'recognizing text') {
-                        statusDiv.innerText = `စာဖတ်နေနှုန်း: ${Math.round(m.progress * 100)}%`;
+                    if (m.status === 'recognizing text') {
+                        status.innerText = `စာသားဖတ်နေသည်: ${(m.progress * 100).toFixed(0)}%`;
+                    } else {
+                        status.innerText = "အခြေအနေ: " + m.status;
                     }
                 }
             });
 
-            resultDiv.innerText = text.trim() || "စာသားရှာမတွေ့ပါ။";
-            statusDiv.innerHTML = "ပြီးပါပြီ!";
-            copyBtn.style.display = "block";
+            await worker.loadLanguage('kor+mya+eng');
+            await worker.initialize('kor+mya+eng');
             
-        } catch (err) {
-            console.error(err);
-            statusDiv.innerHTML = "Error တက်သွားပါသည်!";
-            resultDiv.innerText = "Offline files များရှိမရှိ ပြန်စစ်ပါ။";
+            mainBtn.disabled = false;
+            mainBtn.innerText = "ပုံရွေးရန် (Select Image)";
+            status.innerText = "အဆင်သင့်ဖြစ်ပါပြီ";
+        } catch (e) {
+            status.innerText = "Error: " + e.message;
         }
     }
 
-    function copyToClipboard() {
-        const text = resultDiv.innerText;
-        navigator.clipboard.writeText(text).then(() => {
-            const originalText = copyBtn.innerText;
-            copyBtn.innerText = "Copy ကူးပြီးပါပြီ! ✅";
-            setTimeout(() => {
-                copyBtn.innerText = originalText;
-            }, 2000);
-        });
-    }
+    initWorker();
 
-    startCamera();
+    document.getElementById('fileInput').onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = async () => {
+            document.getElementById('preview').src = reader.result;
+            document.getElementById('preview').style.display = 'block';
+            
+            resultText.value = "ခေတ္တစောင့်ဆိုင်းပေးပါ...";
+            const { data: { text } } = await worker.recognize(file);
+            resultText.value = text;
+            status.innerText = "ပြီးဆုံးပါပြီ။";
+        };
+        reader.readAsDataURL(file);
+    };
+
+    function copyToClipboard() {
+        resultText.select();
+        document.execCommand('copy');
+        alert("Copy ကူးပြီးပါပြီ!");
+    }
 </script>
 </body>
 </html>
