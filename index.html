@@ -52,7 +52,7 @@
                 workerPath: './worker.min.js',
                 corePath: './tesseract-core.wasm.js',
                 langPath: './', 
-                gzip: true, // .gz ဖိုင်တွေကို load လုပ်ရ ပိုလွယ်စေရန်
+                gzip: false, // .gz ဖိုင်တွေကို load လုပ်ရ ပိုလွယ်စေရန်
                 logger: m => {
                     if (m.status === 'recognizing text') {
                         status.innerText = `စာသားဖတ်နေသည်: ${(m.progress * 100).toFixed(0)}%`;
