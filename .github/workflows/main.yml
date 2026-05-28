@@ -11,7 +11,7 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21' # Version 21 သို့ မြှင့်တင်ထားသည်
+          java-version: '21'
           distribution: 'temurin'
 
       - name: Prepare Folder and Install Tools
@@ -24,9 +24,16 @@ jobs:
 
       - name: Initialize and Build Android
         run: |
+          # Project ကို www directory နဲ့ စတင်ခြင်း
           npx cap init MyApp com.kingeraser.myapp --web-dir www
           npx cap add android
-          # Java Version ပြဿနာအတွက် Environment Variable ထည့်သွင်းခြင်း
+          
+          # Webview Settings ပြင်ဆင်ခြင်း
+          sed -i 's/android:usesCleartextTraffic="false"/android:usesCleartextTraffic="true"/' android/app/src/main/AndroidManifest.xml
+          
+          # Local file access config ထည့်ခြင်း
+          echo '{"appId": "com.kingeraser.myapp", "appName": "MyApp", "webDir": "www", "server": {"allowNavigation": ["*"], "cleartext": true}}' > capacitor.config.json
+
           export JAVA_HOME=$JAVA_HOME_21_X64
           npx cap sync android
           cd android && ./gradlew assembleDebug
