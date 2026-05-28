@@ -1,0 +1,22 @@
+name: Convert HTML to APK
+on: [push] # Code အသစ်တင်တိုင်း APK ထုတ်ပေးမယ်
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Web to APK Action
+        uses: darkshredder/web-to-app-action@v1.1.2
+        with:
+          build-folder-path: "./" # HTML ဖိုင်ရှိတဲ့နေရာ
+          app-name: "MyAwesomeApp" # ကိုယ့် App နာမည်ပေးရန်
+          
+      - name: Upload APK
+        uses: actions/upload-artifact@v2
+        with:
+          name: my-app-apk
+          path: apk/ # ထွက်လာမယ့် APK သိမ်းမယ့်နေရာ
+          
