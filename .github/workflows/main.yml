@@ -1,4 +1,4 @@
-name: HTML to APK (Success Version)
+name: HTML to APK (Final Success)
 on: [push]
 
 jobs:
@@ -8,28 +8,26 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
+          java-version: '21' # Version 21 သို့ မြှင့်တင်ထားသည်
           distribution: 'temurin'
 
       - name: Prepare Folder and Install Tools
         run: |
-          # www folder ဆောက်ပြီး HTML project ဖိုင်များကို ရွှေ့ခြင်း
-          mkdir www
+          mkdir -p www
           cp -r ./* www/ || true
-          # မလိုအပ်သော workflows folder ကို ပြန်ဖျက်ခြင်း
           rm -rf www/.github
-          
           npm install -g @ionic/cli
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
       - name: Initialize and Build Android
         run: |
-          # web-dir ကို www လို့ သတ်မှတ်လိုက်ခြင်းဖြင့် error ကို ဖြေရှင်းသည်
           npx cap init MyApp com.kingeraser.myapp --web-dir www
           npx cap add android
+          # Java Version ပြဿနာအတွက် Environment Variable ထည့်သွင်းခြင်း
+          export JAVA_HOME=$JAVA_HOME_21_X64
           npx cap sync android
           cd android && ./gradlew assembleDebug
 
